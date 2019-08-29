@@ -274,7 +274,7 @@
         (DynCall/dcCallInt vm get-tab-size*))
       (get-visual-type [this]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-visual-type*))
+        (char (DynCall/dcCallInt vm get-visual-type*)))
       (visual-active? [this]
         (DynCall/dcReset vm)
         (= 1 (DynCall/dcCallInt vm visual-active?*)))
