@@ -145,7 +145,9 @@
 (defn ->vim []
   (let [libname (condp = (Platform/get)
                   Platform/WINDOWS "libvim"
-                  Platform/MACOSX "vim")
+                  Platform/MACOSX "vim"
+                  Platform/LINUX "vim"
+                  (throw (ex-info "Can't find a vim binary for your platform" {})))
         ^SharedLibrary lib (Library/loadNative libname)
         init* (.getFunctionAddress lib "vimInit")
         open-buffer* (.getFunctionAddress lib "vimBufferOpen")
