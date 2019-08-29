@@ -1,5 +1,5 @@
 (ns libvim-clj.core
-  (:import [org.lwjgl.system Library CallbackI$V MemoryUtil Platform]
+  (:import [org.lwjgl.system Library SharedLibrary CallbackI$V MemoryUtil Platform]
            [org.lwjgl.system.dyncall DynCall DynCallback]))
 
 (def auto-events
@@ -136,13 +136,17 @@
   (set-on-quit [this callback])
   (set-tab-size [this size])
   (get-tab-size [this])
+  (get-visual-type [this])
+  (visual-active? [this])
+  (select-active? [this])
+  (get-visual-range [this])
   (get-mode [this]))
 
 (defn ->vim []
   (let [libname (condp = (Platform/get)
                   Platform/WINDOWS "libvim"
                   Platform/MACOSX "vim")
-        lib (Library/loadNative libname)
+        ^SharedLibrary lib (Library/loadNative libname)
         init* (.getFunctionAddress lib "vimInit")
         open-buffer* (.getFunctionAddress lib "vimBufferOpen")
         get-current-buffer* (.getFunctionAddress lib "vimBufferGetCurrent")
@@ -162,6 +166,13 @@
         set-on-quit* (.getFunctionAddress lib "vimSetQuitCallback")
         set-tab-size* (.getFunctionAddress lib "vimOptionSetTabSize")
         get-tab-size* (.getFunctionAddress lib "vimOptionGetTabSize")
+        get-visual-type* (.getFunctionAddress lib "vimVisualGetType")
+        visual-active?* (.getFunctionAddress lib "vimVisualIsActive")
+        select-active?* (.getFunctionAddress lib "vimSelectIsActive")
+        get-visual-start-line* (.getFunctionAddress lib "vimVisualGetStartLine")
+        get-visual-start-column* (.getFunctionAddress lib "vimVisualGetStartColumn")
+        get-visual-end-line* (.getFunctionAddress lib "vimVisualGetEndLine")
+        get-visual-end-column* (.getFunctionAddress lib "vimVisualGetEndColumn")
         get-mode* (.getFunctionAddress lib "vimGetMode")
         vm (DynCall/dcNewCallVM 1024)]
     (reify IVim
@@ -261,6 +272,28 @@
       (get-tab-size [this]
         (DynCall/dcReset vm)
         (DynCall/dcCallInt vm get-tab-size*))
+      (get-visual-type [this]
+        (DynCall/dcReset vm)
+        (DynCall/dcCallInt vm get-visual-type*))
+      (visual-active? [this]
+        (DynCall/dcReset vm)
+        (= 1 (DynCall/dcCallInt vm visual-active?*)))
+      (select-active? [this]
+        (DynCall/dcReset vm)
+        (= 1 (DynCall/dcCallInt vm select-active?*)))
+      (get-visual-range [this]
+        (let [_ (DynCall/dcReset vm)
+              start-line (DynCall/dcCallLong vm get-visual-start-line*)
+              _ (DynCall/dcReset vm)
+              start-column (DynCall/dcCallInt vm get-visual-start-column*)
+              _ (DynCall/dcReset vm)
+              end-line (DynCall/dcCallLong vm get-visual-end-line*)
+              _ (DynCall/dcReset vm)
+              end-column (DynCall/dcCallInt vm get-visual-end-column*)]
+          {:start-line start-line
+           :start-column start-column
+           :end-line end-line
+           :end-column end-column}))
       (get-mode [this]
         (DynCall/dcReset vm)
         (modes (DynCall/dcCallInt vm get-mode*))))))
