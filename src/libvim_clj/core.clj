@@ -112,7 +112,7 @@
     0x50 REPLACE
     0x02 VISUAL})
 
-(defn ptr->str [ptr]
+(defn ptr->str [^long ptr]
   (when (pos? ptr)
     (MemoryUtil/memUTF8 ptr)))
 
@@ -184,7 +184,7 @@
         (DynCall/dcCallVoid vm init*))
       (open-buffer [this file-name]
         (DynCall/dcReset vm)
-        (DynCall/dcArgPointer vm (-> file-name MemoryUtil/memUTF8 MemoryUtil/memAddress))
+        (DynCall/dcArgPointer vm (-> ^CharSequence file-name MemoryUtil/memUTF8 MemoryUtil/memAddress))
         (DynCall/dcArgLong vm 1)
         (DynCall/dcArgInt vm 0)
         (DynCall/dcCallPointer vm open-buffer*))
@@ -250,11 +250,11 @@
         (DynCall/dcCallLong vm set-cursor-position*))
       (input [this input]
         (DynCall/dcReset vm)
-        (DynCall/dcArgPointer vm (-> input MemoryUtil/memUTF8 MemoryUtil/memAddress))
+        (DynCall/dcArgPointer vm (-> ^CharSequence input MemoryUtil/memUTF8 MemoryUtil/memAddress))
         (DynCall/dcCallVoid vm input*))
       (execute [this cmd]
         (DynCall/dcReset vm)
-        (DynCall/dcArgPointer vm (-> cmd MemoryUtil/memUTF8 MemoryUtil/memAddress))
+        (DynCall/dcArgPointer vm (-> ^CharSequence cmd MemoryUtil/memUTF8 MemoryUtil/memAddress))
         (DynCall/dcCallVoid vm execute*))
       (set-on-quit [this callback]
         (DynCall/dcReset vm)
