@@ -148,7 +148,7 @@
                   Platform/MACOSX "vim"
                   Platform/LINUX "vim"
                   (throw (ex-info "Can't find a vim binary for your platform" {})))
-        ^SharedLibrary lib (Library/loadNative libname)
+        ^SharedLibrary lib (Library/loadNative nil libname)
         init* (.getFunctionAddress lib "vimInit")
         open-buffer* (.getFunctionAddress lib "vimBufferOpen")
         get-current-buffer* (.getFunctionAddress lib "vimBufferGetCurrent")
