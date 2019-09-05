@@ -120,6 +120,7 @@
   (init [this])
   (open-buffer [this file-name])
   (get-current-buffer [this])
+  (set-current-buffer [this buffer-ptr])
   (get-file-name [this buffer-ptr])
   (get-line [this buffer-ptr line-num])
   (get-line-count [this buffer-ptr])
@@ -156,6 +157,7 @@
         init* (.getFunctionAddress lib "vimInit")
         open-buffer* (.getFunctionAddress lib "vimBufferOpen")
         get-current-buffer* (.getFunctionAddress lib "vimBufferGetCurrent")
+        set-current-buffer* (.getFunctionAddress lib "vimBufferSetCurrent")
         get-file-name* (.getFunctionAddress lib "vimBufferGetFilename")
         get-line* (.getFunctionAddress lib "vimBufferGetLine")
         get-line-count* (.getFunctionAddress lib "vimBufferGetLineCount")
@@ -195,6 +197,10 @@
       (get-current-buffer [this]
         (DynCall/dcReset vm)
         (DynCall/dcCallPointer vm get-current-buffer*))
+      (set-current-buffer [this buffer-ptr]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgPointer vm buffer-ptr)
+        (DynCall/dcCallPointer vm set-current-buffer*))
       (get-file-name [this buffer-ptr]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
