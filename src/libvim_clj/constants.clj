@@ -104,9 +104,11 @@
   ])
 
 (def modes
-  '{0x01 NORMAL
-    0x10 INSERT
-    0x08 COMMAND_LINE
-    0x50 REPLACE
-    0x02 VISUAL})
+  {0x01 'NORMAL
+   (+ 0x100 0x01) 'NORMAL ;; NORMAL_BUSY
+   0x04 'OP_PENDING
+   0x10 'INSERT
+   0x08 'COMMAND_LINE
+   0x50 'REPLACE
+   0x02 'VISUAL})
 
