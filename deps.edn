@@ -3,5 +3,7 @@
         org.lwjgl/lwjgl$natives-linux {:mvn/version "3.2.3"}
         org.lwjgl/lwjgl$natives-macos {:mvn/version "3.2.3"}
         org.lwjgl/lwjgl$natives-windows {:mvn/version "3.2.3"}}
- :aliases {:prod {:extra-deps {leiningen {:mvn/version "2.9.0"}}
+ :aliases {:dev {:extra-deps {dynadoc {:mvn/version "RELEASE"}}
+                 :main-opts ["dev.clj"]}
+           :prod {:extra-deps {leiningen {:mvn/version "2.9.0"}}
                   :main-opts ["prod.clj"]}}}
