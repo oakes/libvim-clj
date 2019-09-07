@@ -36,7 +36,8 @@
 
 (defn ->vim
   "Returns an object that you can call the other functions on.
-  You *must* call the `init` function on it before anything else."
+  You *must* call the `init` function on it before anything else.
+  Line numbers are 1-based and column numbers are 0-based (don't ask me why)."
   []
   (let [libname (condp = (Platform/get)
                   Platform/WINDOWS "libvim"
