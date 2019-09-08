@@ -1,4 +1,4 @@
-(defproject libvim-clj "0.1.0"
+(defproject libvim-clj "0.2.0-SNAPSHOT"
   :description "A library that wraps libvim"
   :url "https://github.com/oakes/libvim-clj"
   :license {:name "Public Domain"
