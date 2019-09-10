@@ -46,8 +46,9 @@
                   (throw (ex-info "Can't find a vim binary for your platform" {})))
         ^SharedLibrary lib (try
                              (Library/loadNative nil libname)
+                             ;; make it work for LWJGL 3.2.2 or below
                              (catch NullPointerException _
-                               (throw (ex-info "LWJGL 3.2.3 or greater is required" {}))))
+                               (eval `(Library/loadNative ~libname))))
         init* (.getFunctionAddress lib "vimInit")
         open-buffer* (.getFunctionAddress lib "vimBufferOpen")
         get-current-buffer* (.getFunctionAddress lib "vimBufferGetCurrent")
