@@ -1,8 +1,8 @@
 {:paths ["src" "resources"]
- :deps {org.lwjgl/lwjgl {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl$natives-linux {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl$natives-macos {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl$natives-windows {:mvn/version "3.2.3"}}
+ :deps {org.lwjgl/lwjgl {:mvn/version "3.2.2"}
+        org.lwjgl/lwjgl$natives-linux {:mvn/version "3.2.2"}
+        org.lwjgl/lwjgl$natives-macos {:mvn/version "3.2.2"}
+        org.lwjgl/lwjgl$natives-windows {:mvn/version "3.2.2"}}
  :aliases {:dev {:extra-deps {dynadoc {:mvn/version "RELEASE"}}
                  :main-opts ["dev.clj"]}
            :prod {:extra-deps {leiningen {:mvn/version "2.9.0"}}
