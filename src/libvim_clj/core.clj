@@ -32,6 +32,13 @@
   (visual-active? [vim])
   (select-active? [vim])
   (get-visual-range [vim])
+  (get-window-width [vim])
+  (get-window-height [vim])
+  (get-window-top-line [vim])
+  (get-window-left-column [vim])
+  (set-window-width [vim width])
+  (set-window-height [vim height])
+  (set-window-top-left [vim top left])
   (get-mode [vim]))
 
 (defn ->vim
@@ -75,6 +82,13 @@
         get-visual-start-column* (.getFunctionAddress lib "vimVisualGetStartColumn")
         get-visual-end-line* (.getFunctionAddress lib "vimVisualGetEndLine")
         get-visual-end-column* (.getFunctionAddress lib "vimVisualGetEndColumn")
+        get-window-width* (.getFunctionAddress lib "vimWindowGetWidth")
+        get-window-height* (.getFunctionAddress lib "vimWindowGetHeight")
+        get-window-top-line* (.getFunctionAddress lib "vimWindowGetTopLine")
+        get-window-left-column* (.getFunctionAddress lib "vimWindowGetLeftColumn")
+        set-window-width* (.getFunctionAddress lib "vimWindowSetWidth")
+        set-window-height* (.getFunctionAddress lib "vimWindowSetHeight")
+        set-window-top-left* (.getFunctionAddress lib "vimWindowSetTopLeft")
         get-mode* (.getFunctionAddress lib "vimGetMode")
         vm (DynCall/dcNewCallVM 1024)]
     (reify IVim
@@ -200,6 +214,31 @@
            :start-column start-column
            :end-line end-line
            :end-column end-column}))
+      (get-window-width [vim]
+        (DynCall/dcReset vm)
+        (DynCall/dcCallInt vm get-window-width*))
+      (get-window-height [vim]
+        (DynCall/dcReset vm)
+        (DynCall/dcCallInt vm get-window-height*))
+      (get-window-top-line [vim]
+        (DynCall/dcReset vm)
+        (DynCall/dcCallInt vm get-window-top-line*))
+      (get-window-left-column [vim]
+        (DynCall/dcReset vm)
+        (DynCall/dcCallInt vm get-window-left-column*))
+      (set-window-width [vim width]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgInt vm width)
+        (DynCall/dcCallVoid vm set-window-width*))
+      (set-window-height [vim height]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgInt vm height)
+        (DynCall/dcCallVoid vm set-window-height*))
+      (set-window-top-left [vim top left]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgInt vm top)
+        (DynCall/dcArgInt vm left)
+        (DynCall/dcCallVoid vm set-window-top-left*))
       (get-mode [this]
         (DynCall/dcReset vm)
         (constants/modes (DynCall/dcCallInt vm get-mode*))))))
