@@ -33,6 +33,7 @@
   (select-active? [vim])
   (get-visual-range [vim])
   (get-search-highlights [vim start-line end-line])
+  (set-on-stop-search-highlight [vim callback])
   (get-window-width [vim])
   (get-window-height [vim])
   (get-window-top-line [vim])
@@ -81,6 +82,7 @@
         select-active?* (.getFunctionAddress lib "vimSelectIsActive")
         get-visual-range* (.getFunctionAddress lib "vimVisualGetRangeDestructured")
         get-search-highlights* (.getFunctionAddress lib "vimSearchGetHighlightsDestructured")
+        set-on-stop-search-highlight* (.getFunctionAddress lib "vimSetStopSearchHighlightCallback")
         get-window-width* (.getFunctionAddress lib "vimWindowGetWidth")
         get-window-height* (.getFunctionAddress lib "vimWindowGetHeight")
         get-window-top-line* (.getFunctionAddress lib "vimWindowGetTopLine")
@@ -239,6 +241,15 @@
                                          "(lili)v"))))
           (DynCall/dcCallVoid vm get-search-highlights*)
           @*highlights))
+      (set-on-stop-search-highlight [vim callback]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
+                                   (reify CallbackI$V
+                                     (callback [this args]
+                                       (callback))
+                                     (getSignature [this]
+                                       "()v"))))
+        (DynCall/dcCallVoid vm set-on-stop-search-highlight*))
       (get-window-width [vim]
         (DynCall/dcReset vm)
         (DynCall/dcCallInt vm get-window-width*))
