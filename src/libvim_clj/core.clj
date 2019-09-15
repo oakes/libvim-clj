@@ -58,6 +58,7 @@
                              (Library/loadNative nil libname)
                              (catch NullPointerException _
                                (throw (ex-info "LWJGL 3.2.3 or greater is required" {}))))
+        ;; function pointers
         init* (.getFunctionAddress lib "vimInit")
         open-buffer* (.getFunctionAddress lib "vimBufferOpen")
         get-current-buffer* (.getFunctionAddress lib "vimBufferGetCurrent")
@@ -93,6 +94,15 @@
         set-window-top-left* (.getFunctionAddress lib "vimWindowSetTopLeft")
         get-mode* (.getFunctionAddress lib "vimGetMode")
         set-on-yank* (.getFunctionAddress lib "vimSetDestructuredYankCallback")
+        ;; state to store the global callbacks
+        ;; to ensure that they are not garbage collected
+        *on-buffer-update (volatile! nil)
+        *on-auto-command (volatile! nil)
+        *on-quit (volatile! nil)
+        *on-stop-search-highlight (volatile! nil)
+        *on-yank (volatile! nil)
+        ;; the call vm
+        ;; not sure what the best max size is here
         vm (DynCall/dcNewCallVM 1024)]
     (reify IVim
       (init [this]
@@ -128,26 +138,28 @@
       (set-on-buffer-update [this callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                   (reify CallbackI$V
-                                     (callback [this args]
-                                       (let [buffer-ptr (DynCallback/dcbArgPointer args)
-                                             start-line (DynCallback/dcbArgLong args)
-                                             end-line (DynCallback/dcbArgLong args)
-                                             line-count (DynCallback/dcbArgLong args)]
-                                         (callback buffer-ptr start-line end-line line-count)))
-                                     (getSignature [this]
-                                       "(plll)v"))))
+                                   (vreset! *on-buffer-update
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [buffer-ptr (DynCallback/dcbArgPointer args)
+                                               start-line (DynCallback/dcbArgLong args)
+                                               end-line (DynCallback/dcbArgLong args)
+                                               line-count (DynCallback/dcbArgLong args)]
+                                           (callback buffer-ptr start-line end-line line-count)))
+                                       (getSignature [this]
+                                         "(plll)v")))))
         (DynCall/dcCallVoid vm set-on-buffer-update*))
       (set-on-auto-command [this callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                   (reify CallbackI$V
-                                     (callback [this args]
-                                       (let [event (DynCallback/dcbArgInt args)
-                                             buffer-ptr (DynCallback/dcbArgPointer args)]
-                                         (callback buffer-ptr (constants/auto-events event))))
-                                     (getSignature [this]
-                                       "(ip)v"))))
+                                   (vreset! *on-auto-command
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [event (DynCallback/dcbArgInt args)
+                                               buffer-ptr (DynCallback/dcbArgPointer args)]
+                                           (callback buffer-ptr (constants/auto-events event))))
+                                       (getSignature [this]
+                                         "(ip)v")))))
         (DynCall/dcCallVoid vm set-on-auto-command*))
       (get-command-text [this]
         (DynCall/dcReset vm)
@@ -180,13 +192,14 @@
       (set-on-quit [this callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                   (reify CallbackI$V
-                                     (callback [this args]
-                                       (let [buffer-ptr (DynCallback/dcbArgPointer args)
-                                             force? (DynCallback/dcbArgBool args)]
-                                         (callback buffer-ptr force?)))
-                                     (getSignature [this]
-                                       "(pb)v"))))
+                                   (vreset! *on-quit
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [buffer-ptr (DynCallback/dcbArgPointer args)
+                                               force? (DynCallback/dcbArgBool args)]
+                                           (callback buffer-ptr force?)))
+                                       (getSignature [this]
+                                         "(pb)v")))))
         (DynCall/dcCallVoid vm set-on-quit*))
       (set-tab-size [this size]
         (DynCall/dcReset vm)
@@ -206,51 +219,52 @@
         (= 1 (DynCall/dcCallInt vm select-active?*)))
       (get-visual-range [this]
         (DynCall/dcReset vm)
-        (let [*range (volatile! nil)]
-          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                     (reify CallbackI$V
-                                       (callback [this args]
-                                         (let [start-line (DynCallback/dcbArgLong args)
-                                               start-column (DynCallback/dcbArgInt args)
-                                               end-line (DynCallback/dcbArgLong args)
-                                               end-column (DynCallback/dcbArgInt args)]
-                                           (vreset! *range {:start-line start-line
-                                                            :start-column start-column
-                                                            :end-line end-line
-                                                            :end-column end-column})))
-                                       (getSignature [this]
-                                         "(lili)v"))))
+        (let [*range (volatile! nil)
+              callback (reify CallbackI$V
+                         (callback [this args]
+                           (let [start-line (DynCallback/dcbArgLong args)
+                                 start-column (DynCallback/dcbArgInt args)
+                                 end-line (DynCallback/dcbArgLong args)
+                                 end-column (DynCallback/dcbArgInt args)]
+                             (vreset! *range {:start-line start-line
+                                              :start-column start-column
+                                              :end-line end-line
+                                              :end-column end-column})))
+                         (getSignature [this]
+                           "(lili)v"))]
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
           (DynCall/dcCallVoid vm get-visual-range*)
           @*range))
       (get-search-highlights [vim start-line end-line]
         (DynCall/dcReset vm)
         (DynCall/dcArgLong vm start-line)
         (DynCall/dcArgLong vm end-line)
-        (let [*highlights (volatile! [])]
-          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                     (reify CallbackI$V
-                                       (callback [this args]
-                                         (let [start-line (DynCallback/dcbArgLong args)
-                                               start-column (DynCallback/dcbArgInt args)
-                                               end-line (DynCallback/dcbArgLong args)
-                                               end-column (DynCallback/dcbArgInt args)]
-                                           (vswap! *highlights conj
-                                                   {:start-line start-line
-                                                    :start-column start-column
-                                                    :end-line end-line
-                                                    :end-column end-column})))
-                                       (getSignature [this]
-                                         "(lili)v"))))
+        (let [*highlights (volatile! [])
+              callback (reify CallbackI$V
+                         (callback [this args]
+                           (let [start-line (DynCallback/dcbArgLong args)
+                                 start-column (DynCallback/dcbArgInt args)
+                                 end-line (DynCallback/dcbArgLong args)
+                                 end-column (DynCallback/dcbArgInt args)]
+                             (vswap! *highlights conj
+                                     {:start-line start-line
+                                      :start-column start-column
+                                      :end-line end-line
+                                      :end-column end-column})))
+                         (getSignature [this]
+                           "(lili)v"))]
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
           (DynCall/dcCallVoid vm get-search-highlights*)
           @*highlights))
       (set-on-stop-search-highlight [vim callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                   (reify CallbackI$V
-                                     (callback [this args]
-                                       (callback))
-                                     (getSignature [this]
-                                       "()v"))))
+                                   (vreset! *on-stop-search-highlight
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (callback))
+                                       (getSignature [this]
+                                         "()v")))))
         (DynCall/dcCallVoid vm set-on-stop-search-highlight*))
       (get-window-width [vim]
         (DynCall/dcReset vm)
@@ -283,17 +297,18 @@
       (set-on-yank [vim callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
-                                   (reify CallbackI$V
-                                     (callback [this args]
-                                       (let [start-line (DynCallback/dcbArgLong args)
-                                             start-column (DynCallback/dcbArgInt args)
-                                             end-line (DynCallback/dcbArgLong args)
-                                             end-column (DynCallback/dcbArgInt args)]
-                                         (callback {:start-line start-line
-                                                    :start-column start-column
-                                                    :end-line end-line
-                                                    :end-column end-column})))
-                                     (getSignature [this]
-                                       "(lili)v"))))
+                                   (vreset! *on-yank
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [start-line (DynCallback/dcbArgLong args)
+                                               start-column (DynCallback/dcbArgInt args)
+                                               end-line (DynCallback/dcbArgLong args)
+                                               end-column (DynCallback/dcbArgInt args)]
+                                           (callback {:start-line start-line
+                                                      :start-column start-column
+                                                      :end-line end-line
+                                                      :end-column end-column})))
+                                       (getSignature [this]
+                                         "(lili)v")))))
         (DynCall/dcCallVoid vm set-on-yank*)))))
 
