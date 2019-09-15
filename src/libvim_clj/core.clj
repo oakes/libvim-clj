@@ -108,7 +108,7 @@
       (set-current-buffer [this buffer-ptr]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
-        (DynCall/dcCallPointer vm set-current-buffer*))
+        (DynCall/dcCallVoid vm set-current-buffer*))
       (get-file-name [this buffer-ptr]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
