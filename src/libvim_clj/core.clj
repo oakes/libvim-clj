@@ -41,7 +41,8 @@
   (set-window-width [vim width])
   (set-window-height [vim height])
   (set-window-top-left [vim top left])
-  (get-mode [vim]))
+  (get-mode [vim])
+  (set-on-yank [vim callback]))
 
 (defn ->vim
   "Returns an object that you can call the other functions on.
@@ -91,6 +92,7 @@
         set-window-height* (.getFunctionAddress lib "vimWindowSetHeight")
         set-window-top-left* (.getFunctionAddress lib "vimWindowSetTopLeft")
         get-mode* (.getFunctionAddress lib "vimGetMode")
+        set-on-yank* (.getFunctionAddress lib "vimSetDestructuredYankCallback")
         vm (DynCall/dcNewCallVM 1024)]
     (reify IVim
       (init [this]
@@ -277,5 +279,21 @@
         (DynCall/dcCallVoid vm set-window-top-left*))
       (get-mode [this]
         (DynCall/dcReset vm)
-        (constants/modes (DynCall/dcCallInt vm get-mode*))))))
+        (constants/modes (DynCall/dcCallInt vm get-mode*)))
+      (set-on-yank [vim callback]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
+                                   (reify CallbackI$V
+                                     (callback [this args]
+                                       (let [start-line (DynCallback/dcbArgLong args)
+                                             start-column (DynCallback/dcbArgInt args)
+                                             end-line (DynCallback/dcbArgLong args)
+                                             end-column (DynCallback/dcbArgInt args)]
+                                         (callback {:start-line start-line
+                                                    :start-column start-column
+                                                    :end-line end-line
+                                                    :end-column end-column})))
+                                     (getSignature [this]
+                                       "(lili)v"))))
+        (DynCall/dcCallVoid vm set-on-yank*)))))
 
