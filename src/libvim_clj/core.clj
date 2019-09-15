@@ -32,6 +32,7 @@
   (visual-active? [vim])
   (select-active? [vim])
   (get-visual-range [vim])
+  (get-search-highlights [vim start-line end-line])
   (get-window-width [vim])
   (get-window-height [vim])
   (get-window-top-line [vim])
@@ -78,10 +79,8 @@
         get-visual-type* (.getFunctionAddress lib "vimVisualGetType")
         visual-active?* (.getFunctionAddress lib "vimVisualIsActive")
         select-active?* (.getFunctionAddress lib "vimSelectIsActive")
-        get-visual-start-line* (.getFunctionAddress lib "vimVisualGetStartLine")
-        get-visual-start-column* (.getFunctionAddress lib "vimVisualGetStartColumn")
-        get-visual-end-line* (.getFunctionAddress lib "vimVisualGetEndLine")
-        get-visual-end-column* (.getFunctionAddress lib "vimVisualGetEndColumn")
+        get-visual-range* (.getFunctionAddress lib "vimVisualGetRangeDestructured")
+        get-search-highlights* (.getFunctionAddress lib "vimSearchGetHighlightsDestructured")
         get-window-width* (.getFunctionAddress lib "vimWindowGetWidth")
         get-window-height* (.getFunctionAddress lib "vimWindowGetHeight")
         get-window-top-line* (.getFunctionAddress lib "vimWindowGetTopLine")
@@ -202,18 +201,44 @@
         (DynCall/dcReset vm)
         (= 1 (DynCall/dcCallInt vm select-active?*)))
       (get-visual-range [this]
-        (let [_ (DynCall/dcReset vm)
-              start-line (DynCall/dcCallLong vm get-visual-start-line*)
-              _ (DynCall/dcReset vm)
-              start-column (DynCall/dcCallInt vm get-visual-start-column*)
-              _ (DynCall/dcReset vm)
-              end-line (DynCall/dcCallLong vm get-visual-end-line*)
-              _ (DynCall/dcReset vm)
-              end-column (DynCall/dcCallInt vm get-visual-end-column*)]
-          {:start-line start-line
-           :start-column start-column
-           :end-line end-line
-           :end-column end-column}))
+        (DynCall/dcReset vm)
+        (let [*range (volatile! nil)]
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [start-line (DynCallback/dcbArgLong args)
+                                               start-column (DynCallback/dcbArgInt args)
+                                               end-line (DynCallback/dcbArgLong args)
+                                               end-column (DynCallback/dcbArgInt args)]
+                                           (vreset! *range {:start-line start-line
+                                                            :start-column start-column
+                                                            :end-line end-line
+                                                            :end-column end-column})))
+                                       (getSignature [this]
+                                         "(lili)v"))))
+          (DynCall/dcCallVoid vm get-visual-range*)
+          @*range))
+      (get-search-highlights [vim start-line end-line]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgLong vm start-line)
+        (DynCall/dcArgLong vm end-line)
+        (let [*highlights (volatile! [])]
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [start-line (DynCallback/dcbArgLong args)
+                                               start-column (DynCallback/dcbArgInt args)
+                                               end-line (DynCallback/dcbArgLong args)
+                                               end-column (DynCallback/dcbArgInt args)]
+                                           (vswap! *highlights conj
+                                                   {:start-line start-line
+                                                    :start-column start-column
+                                                    :end-line end-line
+                                                    :end-column end-column})))
+                                       (getSignature [this]
+                                         "(lili)v"))))
+          (DynCall/dcCallVoid vm get-search-highlights*)
+          @*highlights))
       (get-window-width [vim]
         (DynCall/dcReset vm)
         (DynCall/dcCallInt vm get-window-width*))
