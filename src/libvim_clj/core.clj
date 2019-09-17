@@ -33,8 +33,12 @@
   (visual-active? [vim])
   (select-active? [vim])
   (get-visual-range [vim])
-  (get-search-highlights [vim start-line end-line])
-  (get-search-pattern [vim])
+  (get-search-highlights [vim start-line end-line]
+    "Warning: This function could behave badly if you don't have hlsearch enabled:
+    (execute vim \"set hlsearch\")")
+  (get-search-pattern [vim]
+    "Warning: This function could behave badly if you don't have hlsearch enabled:
+    (execute vim \"set hlsearch\")")
   (set-on-stop-search-highlight [vim callback])
   (get-window-width [vim])
   (get-window-height [vim])

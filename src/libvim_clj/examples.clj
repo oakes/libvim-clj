@@ -5,6 +5,16 @@
 (defexample libvim-clj.core/open-buffer
   (open-buffer vim "hello.txt"))
 
+(defexample libvim-clj.core/set-on-buffer-update
+  (set-on-buffer-update vim (fn [buffer-ptr start-line end-line line-count]
+                              (println "Buffer" buffer-ptr "was updated"))))
+
+(defexample libvim-clj.core/set-on-auto-command
+  (set-on-auto-command vim (fn [buffer-ptr event]
+                             (case event
+                               EVENT_BUFENTER (println "User entered a buffer")
+                               nil))))
+
 (defexamples libvim-clj.core/input
   ["Input a character"
    (input vim "h")]
@@ -18,4 +28,16 @@
 (defexample libvim-clj.core/set-on-quit
   (set-on-quit vim (fn [buffer-ptr forced?]
                      (System/exit 0))))
+
+(defexample libvim-clj.core/set-on-unhandled-escape
+  (set-on-unhandled-escape vim (fn []
+                                 (println "User pressed Esc in normal mode"))))
+
+(defexample libvim-clj.core/set-on-stop-search-highlight
+  (set-on-stop-search-highlight vim (fn []
+                                      (println ":noh was executed"))))
+
+(defexample libvim-clj.core/set-on-yank
+  (set-on-yank vim (fn [{:keys [start-line start-column end-line end-column]}]
+                     (println "User copied text"))))
 
