@@ -26,6 +26,7 @@
   (input [vim input])
   (execute [vim cmd])
   (set-on-quit [vim callback])
+  (set-on-unhandled-escape [vim callback])
   (set-tab-size [vim size])
   (get-tab-size [vim])
   (get-visual-type [vim])
@@ -33,6 +34,7 @@
   (select-active? [vim])
   (get-visual-range [vim])
   (get-search-highlights [vim start-line end-line])
+  (get-search-pattern [vim])
   (set-on-stop-search-highlight [vim callback])
   (get-window-width [vim])
   (get-window-height [vim])
@@ -77,6 +79,7 @@
         input* (.getFunctionAddress lib "vimInput")
         execute* (.getFunctionAddress lib "vimExecute")
         set-on-quit* (.getFunctionAddress lib "vimSetQuitCallback")
+        set-on-unhandled-escape* (.getFunctionAddress lib "vimSetUnhandledEscapeCallback")
         set-tab-size* (.getFunctionAddress lib "vimOptionSetTabSize")
         get-tab-size* (.getFunctionAddress lib "vimOptionGetTabSize")
         get-visual-type* (.getFunctionAddress lib "vimVisualGetType")
@@ -84,6 +87,7 @@
         select-active?* (.getFunctionAddress lib "vimSelectIsActive")
         get-visual-range* (.getFunctionAddress lib "vimVisualGetRangeDestructured")
         get-search-highlights* (.getFunctionAddress lib "vimSearchGetHighlightsDestructured")
+        get-search-pattern* (.getFunctionAddress lib "vimSearchGetPattern")
         set-on-stop-search-highlight* (.getFunctionAddress lib "vimSetStopSearchHighlightCallback")
         get-window-width* (.getFunctionAddress lib "vimWindowGetWidth")
         get-window-height* (.getFunctionAddress lib "vimWindowGetHeight")
@@ -99,6 +103,7 @@
         *on-buffer-update (volatile! nil)
         *on-auto-command (volatile! nil)
         *on-quit (volatile! nil)
+        *on-unhandled-escape (volatile! nil)
         *on-stop-search-highlight (volatile! nil)
         *on-yank (volatile! nil)
         ;; the call vm
@@ -201,6 +206,16 @@
                                        (getSignature [this]
                                          "(pb)v")))))
         (DynCall/dcCallVoid vm set-on-quit*))
+      (set-on-unhandled-escape [vim callback]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
+                                   (vreset! *on-unhandled-escape
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (callback))
+                                       (getSignature [this]
+                                         "()v")))))
+        (DynCall/dcCallVoid vm set-on-unhandled-escape*))
       (set-tab-size [this size]
         (DynCall/dcReset vm)
         (DynCall/dcArgInt vm size)
@@ -256,6 +271,9 @@
           (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
           (DynCall/dcCallVoid vm get-search-highlights*)
           @*highlights))
+      (get-search-pattern [vim]
+        (DynCall/dcReset vm)
+        (ptr->str (DynCall/dcCallPointer vm get-search-pattern*)))
       (set-on-stop-search-highlight [vim callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
