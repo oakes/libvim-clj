@@ -178,7 +178,15 @@
         (DynCall/dcCallInt vm get-command-position*))
       (get-command-completion [this]
         (DynCall/dcReset vm)
-        (ptr->str (DynCall/dcCallPointer vm get-command-completion*)))
+        (let [*completion (volatile! nil)
+              callback (reify CallbackI$V
+                         (callback [this args]
+                           (vreset! *completion (ptr->str (DynCallback/dcbArgPointer args))))
+                         (getSignature [this]
+                           "(p)v"))]
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
+          (DynCall/dcCallVoid vm get-command-completion*)
+          @*completion))
       (get-cursor-column [this]
         (DynCall/dcReset vm)
         (DynCall/dcCallInt vm get-cursor-column*))
