@@ -119,11 +119,13 @@
         (DynCall/dcReset vm)
         (DynCall/dcCallVoid vm init*))
       (open-buffer [this file-name]
-        (DynCall/dcReset vm)
-        (DynCall/dcArgPointer vm (-> ^CharSequence file-name MemoryUtil/memUTF8 MemoryUtil/memAddress))
-        (DynCall/dcArgLong vm 1)
-        (DynCall/dcArgInt vm 0)
-        (DynCall/dcCallPointer vm open-buffer*))
+        (let [bb (MemoryUtil/memUTF8 ^CharSequence file-name)]
+          (DynCall/dcReset vm)
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
+          (DynCall/dcArgLong vm 1)
+          (DynCall/dcArgInt vm 0)
+          (DynCall/dcCallPointer vm open-buffer*)
+          (MemoryUtil/memFree bb)))
       (get-current-buffer [this]
         (DynCall/dcReset vm)
         (DynCall/dcCallPointer vm get-current-buffer*))
@@ -199,13 +201,17 @@
         (DynCall/dcArgInt vm col-num)
         (DynCall/dcCallLong vm set-cursor-position*))
       (input [this input]
-        (DynCall/dcReset vm)
-        (DynCall/dcArgPointer vm (-> ^CharSequence input MemoryUtil/memUTF8 MemoryUtil/memAddress))
-        (DynCall/dcCallVoid vm input*))
+        (let [bb (MemoryUtil/memUTF8 ^CharSequence input)]
+          (DynCall/dcReset vm)
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
+          (DynCall/dcCallVoid vm input*)
+          (MemoryUtil/memFree bb)))
       (execute [this cmd]
-        (DynCall/dcReset vm)
-        (DynCall/dcArgPointer vm (-> ^CharSequence cmd MemoryUtil/memUTF8 MemoryUtil/memAddress))
-        (DynCall/dcCallVoid vm execute*))
+        (let [bb (MemoryUtil/memUTF8 ^CharSequence cmd)]
+          (DynCall/dcReset vm)
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
+          (DynCall/dcCallVoid vm execute*)
+          (MemoryUtil/memFree bb)))
       (set-on-quit [this callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
