@@ -124,8 +124,9 @@
           (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
           (DynCall/dcArgLong vm 1)
           (DynCall/dcArgInt vm 0)
-          (DynCall/dcCallPointer vm open-buffer*)
-          (MemoryUtil/memFree bb)))
+          (let [buffer-ptr (DynCall/dcCallPointer vm open-buffer*)]
+            (MemoryUtil/memFree bb)
+            buffer-ptr)))
       (get-current-buffer [this]
         (DynCall/dcReset vm)
         (DynCall/dcCallPointer vm get-current-buffer*))
