@@ -200,7 +200,7 @@
         (DynCall/dcReset vm)
         (DynCall/dcArgLong vm line-num)
         (DynCall/dcArgInt vm col-num)
-        (DynCall/dcCallLong vm set-cursor-position*))
+        (DynCall/dcCallVoid vm set-cursor-position*))
       (input [this input]
         (let [bb (MemoryUtil/memUTF8 ^CharSequence input)]
           (DynCall/dcReset vm)
