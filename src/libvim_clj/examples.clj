@@ -41,3 +41,7 @@
   (set-on-yank vim (fn [{:keys [start-line start-column end-line end-column]}]
                      (println "User copied text"))))
 
+(defexample libvim-clj.core/set-on-message
+  (set-on-message vim (fn [{:keys [title message message-priority]}]
+                        (println message))))
+

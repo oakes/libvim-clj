@@ -48,7 +48,8 @@
   (set-window-height [vim height])
   (set-window-top-left [vim top left])
   (get-mode [vim])
-  (set-on-yank [vim callback]))
+  (set-on-yank [vim callback])
+  (set-on-message [vim callback]))
 
 (defn ->vim
   "Returns an object that you can call the other functions on.
@@ -102,6 +103,7 @@
         set-window-top-left' (.getFunctionAddress lib "vimWindowSetTopLeft")
         get-mode' (.getFunctionAddress lib "vimGetMode")
         set-on-yank' (.getFunctionAddress lib "vimSetDestructuredYankCallback")
+        set-on-message' (.getFunctionAddress lib "vimSetMessageCallback")
         ;; state to store the global callbacks
         ;; to ensure that they are not garbage collected
         *on-buffer-update (volatile! nil)
@@ -110,6 +112,7 @@
         *on-unhandled-escape (volatile! nil)
         *on-stop-search-highlight (volatile! nil)
         *on-yank (volatile! nil)
+        *on-message (volatile! nil)
         ;; the call vm
         ;; not sure what the best max size is here
         vm (DynCall/dcNewCallVM 1024)]
@@ -347,5 +350,20 @@
                                                       :end-column end-column})))
                                        (getSignature [this]
                                          "(lili)v")))))
-        (DynCall/dcCallVoid vm set-on-yank')))))
+        (DynCall/dcCallVoid vm set-on-yank'))
+      (set-on-message [vim callback]
+        (DynCall/dcReset vm)
+        (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
+                                   (vreset! *on-message
+                                     (reify CallbackI$V
+                                       (callback [this args]
+                                         (let [title (DynCallback/dcbArgPointer args)
+                                               msg (DynCallback/dcbArgPointer args)
+                                               msg-priority (DynCallback/dcbArgInt args)]
+                                           (callback {:title (ptr->str title)
+                                                      :message (ptr->str msg)
+                                                      :message-priority msg-priority})))
+                                       (getSignature [this]
+                                         "(ppi)v")))))
+        (DynCall/dcCallVoid vm set-on-message')))))
 
