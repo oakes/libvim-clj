@@ -65,43 +65,43 @@
                              (catch NullPointerException _
                                (throw (ex-info "LWJGL 3.2.3 or greater is required" {}))))
         ;; function pointers
-        init* (.getFunctionAddress lib "vimInit")
-        open-buffer* (.getFunctionAddress lib "vimBufferOpen")
-        get-current-buffer* (.getFunctionAddress lib "vimBufferGetCurrent")
-        set-current-buffer* (.getFunctionAddress lib "vimBufferSetCurrent")
-        get-file-name* (.getFunctionAddress lib "vimBufferGetFilename")
-        get-line* (.getFunctionAddress lib "vimBufferGetLine")
-        get-line-count* (.getFunctionAddress lib "vimBufferGetLineCount")
-        set-on-buffer-update* (.getFunctionAddress lib "vimSetDestructuredBufferUpdateCallback")
-        set-on-auto-command* (.getFunctionAddress lib "vimSetAutoCommandCallback")
-        get-command-text* (.getFunctionAddress lib "vimCommandLineGetText")
-        get-command-position* (.getFunctionAddress lib "vimCommandLineGetPosition")
-        get-command-completion* (.getFunctionAddress lib "vimCommandLineGetCompletion")
-        get-cursor-column* (.getFunctionAddress lib "vimCursorGetColumn")
-        get-cursor-line* (.getFunctionAddress lib "vimCursorGetLine")
-        set-cursor-position* (.getFunctionAddress lib "vimCursorSetPositionDestructured")
-        input* (.getFunctionAddress lib "vimInput")
-        execute* (.getFunctionAddress lib "vimExecute")
-        set-on-quit* (.getFunctionAddress lib "vimSetQuitCallback")
-        set-on-unhandled-escape* (.getFunctionAddress lib "vimSetUnhandledEscapeCallback")
-        set-tab-size* (.getFunctionAddress lib "vimOptionSetTabSize")
-        get-tab-size* (.getFunctionAddress lib "vimOptionGetTabSize")
-        get-visual-type* (.getFunctionAddress lib "vimVisualGetType")
-        visual-active?* (.getFunctionAddress lib "vimVisualIsActive")
-        select-active?* (.getFunctionAddress lib "vimSelectIsActive")
-        get-visual-range* (.getFunctionAddress lib "vimVisualGetRangeDestructured")
-        get-search-highlights* (.getFunctionAddress lib "vimSearchGetHighlightsDestructured")
-        get-search-pattern* (.getFunctionAddress lib "vimSearchGetPattern")
-        set-on-stop-search-highlight* (.getFunctionAddress lib "vimSetStopSearchHighlightCallback")
-        get-window-width* (.getFunctionAddress lib "vimWindowGetWidth")
-        get-window-height* (.getFunctionAddress lib "vimWindowGetHeight")
-        get-window-top-line* (.getFunctionAddress lib "vimWindowGetTopLine")
-        get-window-left-column* (.getFunctionAddress lib "vimWindowGetLeftColumn")
-        set-window-width* (.getFunctionAddress lib "vimWindowSetWidth")
-        set-window-height* (.getFunctionAddress lib "vimWindowSetHeight")
-        set-window-top-left* (.getFunctionAddress lib "vimWindowSetTopLeft")
-        get-mode* (.getFunctionAddress lib "vimGetMode")
-        set-on-yank* (.getFunctionAddress lib "vimSetDestructuredYankCallback")
+        init' (.getFunctionAddress lib "vimInit")
+        open-buffer' (.getFunctionAddress lib "vimBufferOpen")
+        get-current-buffer' (.getFunctionAddress lib "vimBufferGetCurrent")
+        set-current-buffer' (.getFunctionAddress lib "vimBufferSetCurrent")
+        get-file-name' (.getFunctionAddress lib "vimBufferGetFilename")
+        get-line' (.getFunctionAddress lib "vimBufferGetLine")
+        get-line-count' (.getFunctionAddress lib "vimBufferGetLineCount")
+        set-on-buffer-update' (.getFunctionAddress lib "vimSetDestructuredBufferUpdateCallback")
+        set-on-auto-command' (.getFunctionAddress lib "vimSetAutoCommandCallback")
+        get-command-text' (.getFunctionAddress lib "vimCommandLineGetText")
+        get-command-position' (.getFunctionAddress lib "vimCommandLineGetPosition")
+        get-command-completion' (.getFunctionAddress lib "vimCommandLineGetCompletion")
+        get-cursor-column' (.getFunctionAddress lib "vimCursorGetColumn")
+        get-cursor-line' (.getFunctionAddress lib "vimCursorGetLine")
+        set-cursor-position' (.getFunctionAddress lib "vimCursorSetPositionDestructured")
+        input' (.getFunctionAddress lib "vimInput")
+        execute' (.getFunctionAddress lib "vimExecute")
+        set-on-quit' (.getFunctionAddress lib "vimSetQuitCallback")
+        set-on-unhandled-escape' (.getFunctionAddress lib "vimSetUnhandledEscapeCallback")
+        set-tab-size' (.getFunctionAddress lib "vimOptionSetTabSize")
+        get-tab-size' (.getFunctionAddress lib "vimOptionGetTabSize")
+        get-visual-type' (.getFunctionAddress lib "vimVisualGetType")
+        visual-active?' (.getFunctionAddress lib "vimVisualIsActive")
+        select-active?' (.getFunctionAddress lib "vimSelectIsActive")
+        get-visual-range' (.getFunctionAddress lib "vimVisualGetRangeDestructured")
+        get-search-highlights' (.getFunctionAddress lib "vimSearchGetHighlightsDestructured")
+        get-search-pattern' (.getFunctionAddress lib "vimSearchGetPattern")
+        set-on-stop-search-highlight' (.getFunctionAddress lib "vimSetStopSearchHighlightCallback")
+        get-window-width' (.getFunctionAddress lib "vimWindowGetWidth")
+        get-window-height' (.getFunctionAddress lib "vimWindowGetHeight")
+        get-window-top-line' (.getFunctionAddress lib "vimWindowGetTopLine")
+        get-window-left-column' (.getFunctionAddress lib "vimWindowGetLeftColumn")
+        set-window-width' (.getFunctionAddress lib "vimWindowSetWidth")
+        set-window-height' (.getFunctionAddress lib "vimWindowSetHeight")
+        set-window-top-left' (.getFunctionAddress lib "vimWindowSetTopLeft")
+        get-mode' (.getFunctionAddress lib "vimGetMode")
+        set-on-yank' (.getFunctionAddress lib "vimSetDestructuredYankCallback")
         ;; state to store the global callbacks
         ;; to ensure that they are not garbage collected
         *on-buffer-update (volatile! nil)
@@ -117,36 +117,36 @@
       (init [this]
         (DynCall/dcMode vm DynCall/DC_CALL_C_DEFAULT)
         (DynCall/dcReset vm)
-        (DynCall/dcCallVoid vm init*))
+        (DynCall/dcCallVoid vm init'))
       (open-buffer [this file-name]
         (let [bb (MemoryUtil/memUTF8 ^CharSequence file-name)]
           (DynCall/dcReset vm)
           (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
           (DynCall/dcArgLong vm 1)
           (DynCall/dcArgInt vm 0)
-          (let [buffer-ptr (DynCall/dcCallPointer vm open-buffer*)]
+          (let [buffer-ptr (DynCall/dcCallPointer vm open-buffer')]
             (MemoryUtil/memFree bb)
             buffer-ptr)))
       (get-current-buffer [this]
         (DynCall/dcReset vm)
-        (DynCall/dcCallPointer vm get-current-buffer*))
+        (DynCall/dcCallPointer vm get-current-buffer'))
       (set-current-buffer [this buffer-ptr]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
-        (DynCall/dcCallVoid vm set-current-buffer*))
+        (DynCall/dcCallVoid vm set-current-buffer'))
       (get-file-name [this buffer-ptr]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
-        (ptr->str (DynCall/dcCallPointer vm get-file-name*)))
+        (ptr->str (DynCall/dcCallPointer vm get-file-name')))
       (get-line [this buffer-ptr line-num]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
         (DynCall/dcArgLong vm line-num)
-        (ptr->str (DynCall/dcCallPointer vm get-line*)))
+        (ptr->str (DynCall/dcCallPointer vm get-line')))
       (get-line-count [this buffer-ptr]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm buffer-ptr)
-        (DynCall/dcCallLong vm get-line-count*))
+        (DynCall/dcCallLong vm get-line-count'))
       (set-on-buffer-update [this callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
@@ -160,7 +160,7 @@
                                            (callback buffer-ptr start-line end-line line-count)))
                                        (getSignature [this]
                                          "(plll)v")))))
-        (DynCall/dcCallVoid vm set-on-buffer-update*))
+        (DynCall/dcCallVoid vm set-on-buffer-update'))
       (set-on-auto-command [this callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
@@ -172,13 +172,13 @@
                                            (callback buffer-ptr (constants/auto-events event))))
                                        (getSignature [this]
                                          "(ip)v")))))
-        (DynCall/dcCallVoid vm set-on-auto-command*))
+        (DynCall/dcCallVoid vm set-on-auto-command'))
       (get-command-text [this]
         (DynCall/dcReset vm)
-        (ptr->str (DynCall/dcCallPointer vm get-command-text*)))
+        (ptr->str (DynCall/dcCallPointer vm get-command-text')))
       (get-command-position [this]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-command-position*))
+        (DynCall/dcCallInt vm get-command-position'))
       (get-command-completion [this]
         (DynCall/dcReset vm)
         (let [*completion (volatile! nil)
@@ -188,30 +188,30 @@
                          (getSignature [this]
                            "(p)v"))]
           (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
-          (DynCall/dcCallVoid vm get-command-completion*)
+          (DynCall/dcCallVoid vm get-command-completion')
           @*completion))
       (get-cursor-column [this]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-cursor-column*))
+        (DynCall/dcCallInt vm get-cursor-column'))
       (get-cursor-line [this]
         (DynCall/dcReset vm)
-        (DynCall/dcCallLong vm get-cursor-line*))
+        (DynCall/dcCallLong vm get-cursor-line'))
       (set-cursor-position [this line-num col-num]
         (DynCall/dcReset vm)
         (DynCall/dcArgLong vm line-num)
         (DynCall/dcArgInt vm col-num)
-        (DynCall/dcCallVoid vm set-cursor-position*))
+        (DynCall/dcCallVoid vm set-cursor-position'))
       (input [this input]
         (let [bb (MemoryUtil/memUTF8 ^CharSequence input)]
           (DynCall/dcReset vm)
           (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
-          (DynCall/dcCallVoid vm input*)
+          (DynCall/dcCallVoid vm input')
           (MemoryUtil/memFree bb)))
       (execute [this cmd]
         (let [bb (MemoryUtil/memUTF8 ^CharSequence cmd)]
           (DynCall/dcReset vm)
           (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
-          (DynCall/dcCallVoid vm execute*)
+          (DynCall/dcCallVoid vm execute')
           (MemoryUtil/memFree bb)))
       (set-on-quit [this callback]
         (DynCall/dcReset vm)
@@ -224,7 +224,7 @@
                                            (callback buffer-ptr force?)))
                                        (getSignature [this]
                                          "(pb)v")))))
-        (DynCall/dcCallVoid vm set-on-quit*))
+        (DynCall/dcCallVoid vm set-on-quit'))
       (set-on-unhandled-escape [vim callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
@@ -234,23 +234,23 @@
                                          (callback))
                                        (getSignature [this]
                                          "()v")))))
-        (DynCall/dcCallVoid vm set-on-unhandled-escape*))
+        (DynCall/dcCallVoid vm set-on-unhandled-escape'))
       (set-tab-size [this size]
         (DynCall/dcReset vm)
         (DynCall/dcArgInt vm size)
-        (DynCall/dcCallVoid vm set-tab-size*))
+        (DynCall/dcCallVoid vm set-tab-size'))
       (get-tab-size [this]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-tab-size*))
+        (DynCall/dcCallInt vm get-tab-size'))
       (get-visual-type [this]
         (DynCall/dcReset vm)
-        (char (DynCall/dcCallInt vm get-visual-type*)))
+        (char (DynCall/dcCallInt vm get-visual-type')))
       (visual-active? [this]
         (DynCall/dcReset vm)
-        (= 1 (DynCall/dcCallInt vm visual-active?*)))
+        (= 1 (DynCall/dcCallInt vm visual-active?')))
       (select-active? [this]
         (DynCall/dcReset vm)
-        (= 1 (DynCall/dcCallInt vm select-active?*)))
+        (= 1 (DynCall/dcCallInt vm select-active?')))
       (get-visual-range [this]
         (DynCall/dcReset vm)
         (let [*range (volatile! nil)
@@ -267,7 +267,7 @@
                          (getSignature [this]
                            "(lili)v"))]
           (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
-          (DynCall/dcCallVoid vm get-visual-range*)
+          (DynCall/dcCallVoid vm get-visual-range')
           @*range))
       (get-search-highlights [vim start-line end-line]
         (DynCall/dcReset vm)
@@ -288,11 +288,11 @@
                          (getSignature [this]
                            "(lili)v"))]
           (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe callback))
-          (DynCall/dcCallVoid vm get-search-highlights*)
+          (DynCall/dcCallVoid vm get-search-highlights')
           @*highlights))
       (get-search-pattern [vim]
         (DynCall/dcReset vm)
-        (ptr->str (DynCall/dcCallPointer vm get-search-pattern*)))
+        (ptr->str (DynCall/dcCallPointer vm get-search-pattern')))
       (set-on-stop-search-highlight [vim callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
@@ -302,35 +302,35 @@
                                          (callback))
                                        (getSignature [this]
                                          "()v")))))
-        (DynCall/dcCallVoid vm set-on-stop-search-highlight*))
+        (DynCall/dcCallVoid vm set-on-stop-search-highlight'))
       (get-window-width [vim]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-window-width*))
+        (DynCall/dcCallInt vm get-window-width'))
       (get-window-height [vim]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-window-height*))
+        (DynCall/dcCallInt vm get-window-height'))
       (get-window-top-line [vim]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-window-top-line*))
+        (DynCall/dcCallInt vm get-window-top-line'))
       (get-window-left-column [vim]
         (DynCall/dcReset vm)
-        (DynCall/dcCallInt vm get-window-left-column*))
+        (DynCall/dcCallInt vm get-window-left-column'))
       (set-window-width [vim width]
         (DynCall/dcReset vm)
         (DynCall/dcArgInt vm width)
-        (DynCall/dcCallVoid vm set-window-width*))
+        (DynCall/dcCallVoid vm set-window-width'))
       (set-window-height [vim height]
         (DynCall/dcReset vm)
         (DynCall/dcArgInt vm height)
-        (DynCall/dcCallVoid vm set-window-height*))
+        (DynCall/dcCallVoid vm set-window-height'))
       (set-window-top-left [vim top left]
         (DynCall/dcReset vm)
         (DynCall/dcArgInt vm top)
         (DynCall/dcArgInt vm left)
-        (DynCall/dcCallVoid vm set-window-top-left*))
+        (DynCall/dcCallVoid vm set-window-top-left'))
       (get-mode [this]
         (DynCall/dcReset vm)
-        (constants/modes (DynCall/dcCallInt vm get-mode*)))
+        (constants/modes (DynCall/dcCallInt vm get-mode')))
       (set-on-yank [vim callback]
         (DynCall/dcReset vm)
         (DynCall/dcArgPointer vm (MemoryUtil/memAddressSafe
@@ -347,5 +347,5 @@
                                                       :end-column end-column})))
                                        (getSignature [this]
                                          "(lili)v")))))
-        (DynCall/dcCallVoid vm set-on-yank*)))))
+        (DynCall/dcCallVoid vm set-on-yank')))))
 
