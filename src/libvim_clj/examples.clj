@@ -22,6 +22,10 @@
    See: https://vim.fandom.com/wiki/Mapping_keys_in_Vim_-_Tutorial_%28Part_2%29"
    (input vim "<Enter>")])
 
+(defexample libvim-clj.core/input-unicode
+  "Input a unicode character"
+  (input-unicode vim "者"))
+
 (defexample libvim-clj.core/execute
   (execute vim "set expandtab"))
 
