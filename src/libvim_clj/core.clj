@@ -24,6 +24,7 @@
   (get-cursor-line [vim])
   (set-cursor-position [vim line-num col-num])
   (input [vim input])
+  (input-unicode [vim input])
   (execute [vim cmd])
   (set-on-quit [vim callback])
   (set-on-unhandled-escape [vim callback])
@@ -81,7 +82,8 @@
         get-cursor-column' (.getFunctionAddress lib "vimCursorGetColumn")
         get-cursor-line' (.getFunctionAddress lib "vimCursorGetLine")
         set-cursor-position' (.getFunctionAddress lib "vimCursorSetPositionDestructured")
-        input' (.getFunctionAddress lib "vimInput")
+        input' (.getFunctionAddress lib "vimKey")
+        input-unicode' (.getFunctionAddress lib "vimInput")
         execute' (.getFunctionAddress lib "vimExecute")
         set-on-quit' (.getFunctionAddress lib "vimSetQuitCallback")
         set-on-unhandled-escape' (.getFunctionAddress lib "vimSetUnhandledEscapeCallback")
@@ -209,6 +211,12 @@
           (DynCall/dcReset vm)
           (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
           (DynCall/dcCallVoid vm input')
+          (MemoryUtil/memFree bb)))
+      (input-unicode [this input]
+        (let [bb (MemoryUtil/memUTF8 ^CharSequence input)]
+          (DynCall/dcReset vm)
+          (DynCall/dcArgPointer vm (MemoryUtil/memAddress bb))
+          (DynCall/dcCallVoid vm input-unicode')
           (MemoryUtil/memFree bb)))
       (execute [this cmd]
         (let [bb (MemoryUtil/memUTF8 ^CharSequence cmd)]
